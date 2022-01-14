@@ -472,7 +472,8 @@ img {
   @media (max-width: 767px) {
     .page-header__top {
       padding-top: 20px;
-      padding-bottom: 13px; } }
+      padding-bottom: 13px;
+      height: 92px; } }
 
 .page-header__wrapper {
   display: -webkit-box;
