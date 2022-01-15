@@ -663,11 +663,7 @@ img {
     display: none; } }
 
 .page-footer {
-  background-color: #000000;
-  -webkit-box-flex: 0;
-      -ms-flex: 0 0 auto;
-          flex: 0 0 auto;
-  position: relative; }
+  background-color: #000000; }
 
 .page-footer__wrapper {
   display: -webkit-box;
