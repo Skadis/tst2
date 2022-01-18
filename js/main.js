@@ -2,6 +2,8 @@
 
 (function () {
 
+  /* global focusManager, Swiper */
+
   const header = document.querySelector('.page-header');
   const menuButton = header.querySelector('.page-header__toggle');
   const body = document.querySelector('.page-body');
@@ -10,7 +12,7 @@
   const modalOverlay = document.querySelector('.modal__overlay');
   const modalForm = document.querySelector('.modal__login');
   const pageBody = document.querySelector('body');
-  const focusManagerLib = focusManager; // eslint-disable-line
+  const focusManagerLib = focusManager;
   const storage = window.localStorage;
 
   const openModal = function (item, evt) {
@@ -117,8 +119,75 @@
   if (window.location.toString().includes('main.html')) {
     const faqButtons = document.querySelectorAll('.faq__item');
     const faqList = document.querySelector('.faq__list');
+    const sliderList = document.querySelector('.slider-catalog__list');
 
-    faqList.classList.remove('faq__list--nojs');
+    let swiper = new Swiper('.slider-catalog__slider', {
+      init: false,
+      simulateTouch: false,
+      watchSlidesVisibility: true,
+      watchSlidesProgress: true,
+      navigation: {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      },
+      pagination: {
+        el: '.swiper-pagination',
+        clickable: true,
+      },
+      breakpoints: {
+        0: {
+          slidesPerView: 2,
+          slidesPerGroup: 2,
+          spaceBetween: 30,
+          pagination: {
+            type: 'fraction',
+            renderFraction: function (currentClass, totalClass, index, total) {
+              return '<span class="' + currentClass + '">0 ' + index + ' </span>' +
+                  ' of ' +
+                  '<span class="' + totalClass + '">0 ' + total + ' </span>';
+            },
+          }
+        },
+        768: {
+          slidesPerView: 2,
+          slidesPerGroup: 2,
+          spaceBetween: 30,
+          pagination: {
+            type: 'bullets',
+            renderBullet: function (index, className) {
+              return '<span class="' + className + '">' + (index + 1) + '</span>';
+            },
+          }
+        },
+        1024: {
+          slidesPerView: 4,
+          slidesPerGroup: 4,
+          spaceBetween: 30,
+          pagination: {
+            type: 'bullets',
+            renderBullet: function (index, className) {
+              return '<span class="' + className + '">' + (index + 1) + '</span>';
+            },
+          }
+        }
+      }
+    });
+
+    swiper.init();
+
+    swiper.$el.on('keydown', (e) => {
+
+      const slideIndex = e.target.dataset.slideIndex;
+
+      if (!slideIndex) {
+        return;
+      }
+
+      swiper.slideTo(slideIndex);
+    });
+
+    faqList.classList.remove('faq__list--no-js');
+    sliderList.classList.remove('slider-catalog__list--no-js');
 
     faqButtons.forEach((item) => {
       item.classList.add('closed');
@@ -144,24 +213,60 @@
   }
 
   if (window.location.toString().includes('catalog.html')) {
-    const filter = document.querySelector('.filter');
     const filterButtons = document.querySelectorAll('.filter__field');
     const filterOpenButton = document.querySelector('.catalog__filter-button');
-    const filterCloseButton = document.querySelector('.filter__close-button');
+    const filterModal = document.querySelector('.modal--filter');
+    const filterModalOverlay = filterModal.querySelector('.modal__overlay');
 
-    filterOpenButton.addEventListener('click', () => {
-      if (filter.classList.contains('filter--close')) {
-        filter.classList.remove('filter--close');
-      }
-      filter.classList.add('filter--open');
-    });
+    const openModalFilter = function (item, evt) {
+      evt.preventDefault();
+      if (item) {
+        item.classList.add('modal--open');
+        filterModalOverlay.classList.add('lock');
+        pageBody.classList.add('lock');
+        focusManagerLib.capture(filterModal);
+        const modalCloseButton = item.querySelector('.filter__close-button');
 
-    filterCloseButton.addEventListener('click', () => {
-      if (filter.classList.contains('filter--open')) {
-        filter.classList.remove('filter--open');
+        modalCloseButton.addEventListener('click', onCloseButtonPressFilter);
+        filterModalOverlay.addEventListener('click', onOverlayClickFilter);
+        window.addEventListener('keydown', onEscKeyPressFilter);
       }
-      filter.classList.add('filter--close');
-    });
+    };
+
+    const closeModalFilter = function () {
+      filterModal.classList.remove('modal--open');
+      pageBody.classList.remove('lock');
+      const modalCloseButton = document.querySelector('.filter__close-button');
+      modalCloseButton.removeEventListener('click', onCloseButtonPressFilter);
+      filterModalOverlay.removeEventListener('click', onOverlayClickFilter);
+      focusManagerLib.release(filterModal);
+      window.removeEventListener('keydown', onEscKeyPressFilter);
+    };
+
+    const onModalOpenFilter = function (evt) {
+      openModalFilter(filterModal, evt);
+    };
+
+    const onCloseButtonPressFilter = () => {
+      closeModalFilter();
+    };
+
+    const onOverlayClickFilter = function (evt) {
+      if (evt.target.matches('.lock')) {
+        closeModalFilter();
+      }
+    };
+
+    const onEscKeyPressFilter = function (evt) {
+      if (evt.keyCode === 27) {
+        evt.preventDefault();
+        closeModalFilter();
+      }
+    };
+
+
+    filterOpenButton.addEventListener('click', onModalOpenFilter);
+
 
     filterButtons.forEach((item) => {
       item.classList.add('filter__field--closed');
@@ -176,53 +281,4 @@
     });
   }
 
-  // eslint-disable-next-line
-  let swiper = new Swiper('.slider-catalog__slider', {
-    simulateTouch: false,
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev',
-    },
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-    },
-    breakpoints: {
-      0: {
-        slidesPerView: 2,
-        slidesPerGroup: 2,
-        spaceBetween: 30,
-        pagination: {
-          type: 'fraction',
-          renderFraction: function (currentClass, totalClass, index, total) {
-            return '<span class="' + currentClass + '">0 ' + index + ' </span>' +
-                ' of ' +
-                '<span class="' + totalClass + '">0 ' + total + ' </span>';
-          },
-        }
-      },
-      768: {
-        slidesPerView: 2,
-        slidesPerGroup: 2,
-        spaceBetween: 30,
-        pagination: {
-          type: 'bullets',
-          renderBullet: function (index, className) {
-            return '<span class="' + className + '">' + (index + 1) + '</span>';
-          },
-        }
-      },
-      1024: {
-        slidesPerView: 4,
-        slidesPerGroup: 4,
-        spaceBetween: 30,
-        pagination: {
-          type: 'bullets',
-          renderBullet: function (index, className) {
-            return '<span class="' + className + '">' + (index + 1) + '</span>';
-          },
-        }
-      }
-    }
-  });
 })();
